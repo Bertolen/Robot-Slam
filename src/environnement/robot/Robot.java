@@ -9,8 +9,8 @@ import javax.swing.Timer;
 
 public class Robot {
 
-	Point2D.Double location;
-	Point2D.Double orientation;
+	Point2D.Double emplacement;
+	double orientation;
 	double taille;
 	double vitesseLin;
 	double vitesseRot;
@@ -20,29 +20,28 @@ public class Robot {
 		taille = 30.0d;
 		vitesseLin = 30.0d;
 		vitesseRot = 0.01d;
-		location = new Point2D.Double(-100, -100);
-		orientation = new Point2D.Double(0, 1);
+		emplacement = new Point2D.Double(-100, -100);
+		orientation = 0.0d;
 	}
 
 	//////////////////////////////////// Accesseurs /////////////////////////////////////
 
 	public void setLocation(int x, int y) {
-		location.setLocation(x, y);
+		emplacement.setLocation(x, y);
 	}
 
 	//calcule une nouvelle orientation pour pointer vers le lieu du click
 	public void setOrientation(int x, int y) {
-		double alpha = x - location.getX();
-		double beta = y - location.getY();
-		double norme = Math.sqrt(Math.pow(alpha, 2) + Math.pow(beta, 2));
-		orientation.setLocation(alpha / norme, beta / norme);
+		double alpha = x - emplacement.getX();
+		double beta = y - emplacement.getY();
+		orientation = Math.atan2(beta, alpha);
 	}
 	
-	public Point2D.Double getLocation() {
-		return location;
+	public Point2D.Double getEmplacement() {
+		return emplacement;
 	}
 	
-	public Point2D.Double getOrientation() {
+	public double getOrientation() {
 		return orientation;
 	}
 	
@@ -92,12 +91,11 @@ public class Robot {
 	protected void PhysicsUpdate(double delta) {
 		
 		// On commence par appliquer la rotation
-		double newAngle = Math.atan2(orientation.getY(), orientation.getX()) + vitesseRot;
-		orientation.setLocation(Math.cos(newAngle), Math.sin(newAngle));
+		orientation += vitesseRot;
 		
 		// On finis en appliquant la translation
-		double newX = location.getX() + orientation.getX() * vitesseLin * delta / 1000;
-		double newY = location.getY() + orientation.getY() * vitesseLin * delta / 1000;
-		location.setLocation(newX, newY);
+		double newX = emplacement.getX() + Math.cos(orientation) * vitesseLin * delta / 1000;
+		double newY = emplacement.getY() + Math.sin(orientation) * vitesseLin * delta / 1000;
+		emplacement.setLocation(newX, newY);
 	}
 }
