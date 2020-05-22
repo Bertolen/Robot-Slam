@@ -76,10 +76,18 @@ public class PEnvironnement extends JPanel {
 		g.fillOval((int)Environnement.getDonnees().getCurrentCorner().getX() - cornerSize / 2, (int)Environnement.getDonnees().getCurrentCorner().getY() - cornerSize / 2, cornerSize, cornerSize);
 		
 		//Dessin du robot
-		g.setColor(Color.gray);
 		Robot robot = Environnement.getRobot();
+		
+		//Socle du robot
+		g.setColor(Color.gray);
 		int x = (int) (robot.getLocation().getX() - robot.getTaille() / 2);
 		int y = (int) (robot.getLocation().getY() - robot.getTaille() / 2);
 		g.fillOval(x, y, (int) robot.getTaille(), (int) robot.getTaille());
+		
+		//trait d'orientation
+		g.setColor(Color.red);
+		int x2 = (int) (robot.getLocation().getX() + robot.getOrientation().getX() * robot.getTaille() / 2);
+		int y2 = (int) (robot.getLocation().getY() + robot.getOrientation().getY() * robot.getTaille() / 2);
+		g.drawLine((int) robot.getLocation().getX(), (int) robot.getLocation().getY(), x2, y2);
 	}
 }

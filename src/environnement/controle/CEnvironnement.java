@@ -23,6 +23,10 @@ public class CEnvironnement implements MouseListener {
 		Environnement.getDonnees().setSelection(Objet.ROBOT);
 	}
 	
+	public void gestionClickBoutonLancer() {
+		Environnement.getRobot().lancer();
+	}
+	
 	/////////////////////// Implementation MouseListener /////////////////////////////////
 	
 	@Override

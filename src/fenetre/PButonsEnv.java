@@ -14,6 +14,7 @@ public class PButonsEnv extends JPanel implements ActionListener {
 
 	JButton bouttonMurs;
 	JButton bouttonRobot;
+	JButton bouttonLancer;
 	
 	///////////////////////////////////// Creators ///////////////////////////////////////
 	
@@ -53,6 +54,13 @@ public class PButonsEnv extends JPanel implements ActionListener {
 		bouttonRobot.addActionListener(this);
 		//Ajout du bouton au panneau
 		this.add(bouttonRobot);
+		
+		//Création du bouton de lancement
+		bouttonLancer = new JButton("Lancer");
+		//Branchement du bouton
+		bouttonLancer.addActionListener(this);
+		//Ajout du bouton au panneau
+		this.add(bouttonLancer);
 	}
 
 	/////////////////////// Implementation ActionListener /////////////////////////////////
@@ -64,6 +72,9 @@ public class PButonsEnv extends JPanel implements ActionListener {
 		}
 		if(bouttonRobot.equals(e.getSource())) {
 			Environnement.getControl().gestionClickBoutonRobot();
+		}
+		if(bouttonLancer.equals(e.getSource())) {
+			Environnement.getControl().gestionClickBoutonLancer();
 		}
 	}
 
