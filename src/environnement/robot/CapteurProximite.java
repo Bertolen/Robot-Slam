@@ -12,23 +12,53 @@ public class CapteurProximite {
 	double orientationGlobale;
 	Point2D.Double emplacementGlobal;
 	double offsetOrientation;
-	Point2D.Double offsetEmplacement;
 	double portee;
 	
 	Robot robot;
 	
-	public CapteurProximite(Robot r) {
-		robot = r;
+	// Point d'origine du faisceau
+	Point2D.Double A;
+	// Point max du faisceau
+	Point2D.Double B;
+	// Point d'intersection du faisceau
+	Point2D.Double P;
+	
+	public CapteurProximite(Robot robot, double portee, double offsetOrientation) {
+		this.robot = robot;
+		this.offsetOrientation = offsetOrientation;
+		this.portee = portee;
+		
+		this.emplacementGlobal = new Point2D.Double();
+		this.A = new Point2D.Double();
+		this.B = new Point2D.Double();
+		this.P = new Point2D.Double();
 	}
+	
+	////////////////////////////////////// Accesseurs ////////////////////////////////
+	
+	public Point2D.Double getPointSource() {
+		return A;
+	}
+	
+	public Point2D.Double getPointFinal() {
+		return B;
+	}
+	
+	public Point2D.Double getPointIntersection() {
+		return P;
+	}
+	
+	////////////////////////////////////// Méthodes //////////////////////////////////
 	
 	public double mesure() {
 		double mesure = portee;
 		
 		// calcul de l'emplacement et orientation globaux
 		positionneGlobal();
+		P = B;
 		
 		// on parcours tous les murs à partir des coins de murs
-		ArrayList<Point> corners = Environnement.getDonnees().getCorners();
+		ArrayList<Point2D.Double> corners = Environnement.getDonnees().getCorners();
 		for (int i = 0 ; i < corners.size() - 1 ; i++) {
 			
 			// Pour chaque mur on cherche son intersection avec le capteur
@@ -41,6 +71,7 @@ public class CapteurProximite {
 			double dist = emplacementGlobal.distance(intersection); 
 			if (dist < mesure) {
 				mesure = dist;
+				P = intersection;
 			}
 		}
 		
@@ -53,16 +84,18 @@ public class CapteurProximite {
 		orientationGlobale = robot.getOrientation() + offsetOrientation;
 
 		// On finis en appliquant la translation
-		double newX = robot.getEmplacement().getX() + offsetEmplacement.getX() * Math.cos(orientationGlobale);
-		double newY = robot.getEmplacement().getY() + offsetEmplacement.getY() * Math.sin(orientationGlobale);
+		double newX = robot.getEmplacement().getX() + robot.getTaille() / 2 * Math.cos(orientationGlobale);
+		double newY = robot.getEmplacement().getY() + robot.getTaille() / 2 * Math.sin(orientationGlobale);
 		emplacementGlobal.setLocation(newX, newY);
+		
+		// Calcul de l'emplacement des extrèmités du faisceau
+		A.setLocation(emplacementGlobal.getX(), emplacementGlobal.getY());
+		B.setLocation(A.getX() + Math.cos(orientationGlobale) * portee, A.getY() + Math.sin(orientationGlobale) * portee);
 	}
 	
-	private Point2D.Double trouveIntersection(Point C, Point D) {
-		// Le mur est représenté par le segment d'extrémités A et B
+	private Point2D.Double trouveIntersection(Point2D.Double C, Point2D.Double D) {
+		// Le faisceau du capteur est représenté par le segment d'extrémités A et B
 		// I est le vecteur AB
-		Point A = new Point((int)emplacementGlobal.getX(), (int)emplacementGlobal.getY());
-		Point B = new Point((int) (A.getX() + Math.cos(orientationGlobale) * portee), (int) (A.getY() + Math.sin(orientationGlobale) * portee));
 		Point2D.Double I = new Point2D.Double(B.getX() - A.getX(), B.getY() - A.getY());
 		
 		// Le mur est reprsésenté par le segment d'extrémités C et D
@@ -72,16 +105,16 @@ public class CapteurProximite {
 		// Vérification que les droites ne sont pas parrallèles
 		if (I.getX()*J.getY()-I.getY()*J.getX() == 0) return null;
 		
-		// Soit k le paramètre du point d'intersection du segment CD sur la droite AB (càd P = A + k * B)
-		double k = -(A.getX()*J.getY()-C.getX()*J.getY()-J.getX()*A.getY()+J.getX()*C.getY())/(I.getX()*J.getY()-I.getY()*J.getX());
+		// Soit m le paramètre du point d'intersection du segment AB sur la droite CD (càd P = C + m * J)
+		double m = (I.getX() * (A.getY() - C.getY()) + I.getY() * (C.getX() - A.getX())) / (I.getX()*J.getY()-I.getY()*J.getX());
 		
-		// Soit m le paramètre du point d'intersection du segment AB sur la droite CD (càd P = C + m * D)
-		double m = -(-I.getX()*A.getY()+I.getX()*C.getY()+I.getY()*A.getX()-I.getY()*C.getX())/(I.getX()*J.getY()-I.getY()*J.getX());
+		// Soit k le paramètre du point d'intersection du segment CD sur la droite AB (càd P = A + k * I)
+		double k = (C.getX() + m * J.getX() - A.getX()) / I.getX();
 		
 		// Si k et m sont entre 0 et 1 inclus alors on a intersection entre les deux segments
 		if (k < 0 || m < 0 || k > 1 || m > 1) return null;
 		
 		// on récupère le point d'intersection grâce à k (marche aussi avec m)
-		return new Point2D.Double(A.getX() + k * B.getX(), A.getY() + k * B.getY());
+		return new Point2D.Double(A.getX() + k * I.getX(), A.getY() + k * I.getY());
 	}
 }

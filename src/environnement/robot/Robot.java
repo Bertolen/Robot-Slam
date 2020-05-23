@@ -4,6 +4,8 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
+import java.util.ArrayList;
 
 import javax.swing.Timer;
 
@@ -16,18 +18,29 @@ public class Robot {
 	double vitesseRot;
 	double lastTick;
 	
+	ArrayList<CapteurProximite> capteursProx;
+	
 	public Robot() {
 		taille = 30.0d;
-		vitesseLin = 30.0d;
-		vitesseRot = 0.01d;
 		emplacement = new Point2D.Double(-100, -100);
 		orientation = 0.0d;
+		
+		// Initialisation de la liste de capteurs de proximité
+		capteursProx = new ArrayList<CapteurProximite>();
+		// Temp : on ajoute un unique capteur au robot
+		capteursProx.add(new CapteurProximite(this, 50.0d, 0.0d));
+		capteursProx.add(new CapteurProximite(this, 50.0d, Math.PI/4));
+		capteursProx.add(new CapteurProximite(this, 50.0d, -Math.PI/4));
 	}
 
 	//////////////////////////////////// Accesseurs /////////////////////////////////////
 
 	public void setLocation(int x, int y) {
 		emplacement.setLocation(x, y);
+	}
+	
+	public ArrayList<CapteurProximite> getCapteursProx() {
+		return capteursProx;
 	}
 
 	//calcule une nouvelle orientation pour pointer vers le lieu du click
@@ -85,6 +98,34 @@ public class Robot {
 	// C'est la fonction principale de ce projet
 	protected void DecisionUpdate(double delta) {
 		// TODO
+		double mesureMoyenne = 0.0d;
+		double mesureMin = -1.0d;
+		double mesureMax = 0.0d;
+		
+		for (int i = 0 ; i < capteursProx.size() ; i++) {
+			mesureMoyenne += capteursProx.get(i).mesure();
+			
+			if (mesureMin < 0 || capteursProx.get(i).mesure() < mesureMin) {
+				mesureMin = capteursProx.get(i).mesure();
+			}
+			
+			if ( capteursProx.get(i).mesure() > mesureMax) {
+				mesureMax = capteursProx.get(i).mesure();
+			}
+		}
+		
+		mesureMoyenne /= capteursProx.size();
+		System.out.println("mesureMoyenne : " + mesureMoyenne);
+		System.out.println("mesureMin : " + mesureMin);
+		System.out.println("mesureMax : " + mesureMax);
+		
+		if (mesureMoyenne >= this.taille && mesureMin >= this.taille / 4) {
+			vitesseLin = mesureMoyenne;
+			vitesseRot = 0.0d;			
+		} else {
+			vitesseLin = 0.0d;
+			vitesseRot = 0.02d;
+		}
 	}
 	
 	// Calcul du nouvel emplacement du robot

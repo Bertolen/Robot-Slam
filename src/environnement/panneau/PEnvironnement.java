@@ -6,12 +6,14 @@ import java.awt.LayoutManager;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import environnement.Environnement;
+import environnement.robot.CapteurProximite;
 import environnement.robot.Robot;
 
 public class PEnvironnement extends JPanel {
@@ -60,7 +62,7 @@ public class PEnvironnement extends JPanel {
 		//Dessin des murs
 		g.setColor(Color.green);
 		
-		ArrayList<Point> cornerArray = Environnement.getDonnees().getCorners(); 
+		ArrayList<Point2D.Double> cornerArray = Environnement.getDonnees().getCorners(); 
 		
 		// on dessine les coins placés
 		for(int i = 0 ; i < cornerArray.size() ; i++) {
@@ -78,16 +80,35 @@ public class PEnvironnement extends JPanel {
 		//Dessin du robot
 		Robot robot = Environnement.getRobot();
 		
-		//Socle du robot
+		// Socle du robot
 		g.setColor(Color.gray);
 		int x = (int) (robot.getEmplacement().getX() - robot.getTaille() / 2);
 		int y = (int) (robot.getEmplacement().getY() - robot.getTaille() / 2);
 		g.fillOval(x, y, (int) robot.getTaille(), (int) robot.getTaille());
 		
-		//trait d'orientation
+		// trait d'orientation
 		g.setColor(Color.red);
 		int x2 = (int) (robot.getEmplacement().getX() + Math.cos(robot.getOrientation()) * robot.getTaille() / 2);
 		int y2 = (int) (robot.getEmplacement().getY() + Math.sin(robot.getOrientation()) * robot.getTaille() / 2);
 		g.drawLine((int) robot.getEmplacement().getX(), (int) robot.getEmplacement().getY(), x2, y2);
+		
+		// capteurs de proximité
+		for(int i = 0 ; i < robot.getCapteursProx().size() ; i ++) {
+			CapteurProximite capteur = robot.getCapteursProx().get(i);
+
+			// trait avant intersection
+			g.setColor(Color.red);
+			x = (int) capteur.getPointFinal().getX();
+			y = (int) capteur.getPointFinal().getY();
+			x2 = (int) capteur.getPointIntersection().getX();
+			y2 = (int) capteur.getPointIntersection().getY();
+			g.drawLine(x, y, x2, y2);
+			
+			// trait avant intersection
+			g.setColor(Color.blue);
+			x = (int) capteur.getPointSource().getX();
+			y = (int) capteur.getPointSource().getY();
+			g.drawLine(x, y, x2, y2);
+		}
 	}
 }

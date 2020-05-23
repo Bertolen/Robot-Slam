@@ -1,12 +1,13 @@
 package environnement.donnees;
 
 import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 public class DEnvironnement {
 	
-	Point currentCorner;
-	ArrayList<Point> cornerArray;
+	Point2D.Double currentCorner;
+	ArrayList<Point2D.Double> cornerArray;
 	Objet selection;
 	
 	public enum Objet {
@@ -18,7 +19,7 @@ public class DEnvironnement {
 	public DEnvironnement() {
 		
 		// Initialisation du coin courant
-		currentCorner = new Point(-100,-100);
+		currentCorner = new Point2D.Double(-100,-100);
 		
 		// Initialisation de la liste des coins
 		cornerArray = new ArrayList<>();
@@ -29,11 +30,11 @@ public class DEnvironnement {
 
 	//////////////////////////////////// Accesseurs /////////////////////////////////////
 
-	public ArrayList<Point> getCorners() {
+	public ArrayList<Point2D.Double> getCorners() {
 		return cornerArray;
 	}
 
-	public Point getCurrentCorner() {
+	public Point2D.Double getCurrentCorner() {
 		return currentCorner;
 	}
 	
@@ -49,7 +50,7 @@ public class DEnvironnement {
 	
 	public void addCorner() {
 		if(currentCorner.getX() > 0 && currentCorner.getY() > 0) {
-			cornerArray.add((Point) currentCorner.clone());
+			cornerArray.add((Point2D.Double) currentCorner.clone());
 			currentCorner.setLocation(-100, -100);
 		}
 	}
