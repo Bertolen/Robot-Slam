@@ -48,6 +48,10 @@ public class CapteurProximite {
 		return P;
 	}
 	
+	public double getOffsetOrientation() {
+		return this.offsetOrientation;
+	}
+	
 	////////////////////////////////////// Méthodes //////////////////////////////////
 	
 	public double mesure() {

@@ -36,6 +36,7 @@ public class CEnvironnement implements MouseListener {
 		if(e.getButton() == e.BUTTON1) {
 			switch (Environnement.getDonnees().getSelection()) {
 			case MUR:
+				Environnement.getDonnees().moveCorner(e.getX(), e.getY());
 				Environnement.getDonnees().addCorner();
 				break;
 				

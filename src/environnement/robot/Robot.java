@@ -31,6 +31,8 @@ public class Robot {
 		capteursProx.add(new CapteurProximite(this, 50.0d, 0.0d));
 		capteursProx.add(new CapteurProximite(this, 50.0d, Math.PI/4));
 		capteursProx.add(new CapteurProximite(this, 50.0d, -Math.PI/4));
+		capteursProx.add(new CapteurProximite(this, 50.0d, Math.PI/2));
+		capteursProx.add(new CapteurProximite(this, 50.0d, -Math.PI/2));
 	}
 
 	//////////////////////////////////// Accesseurs /////////////////////////////////////
@@ -60,6 +62,20 @@ public class Robot {
 	
 	public double getTaille() {
 		return taille;
+	}
+	
+	private void setVitLin(double vl) {
+		if (vl < -this.taille) vl = -this.taille;
+		if (vl > this.taille) vl = this.taille;
+		
+		this.vitesseLin = vl;
+	}
+	
+	private void setVitRot(double vr) {
+		if (vr < -Math.PI / 4) vr = -Math.PI / 4;
+		if (vr > Math.PI / 4) vr = Math.PI / 4;
+		
+		this.vitesseRot = vr;
 	}
 	
 	////////////////////////////////////// Méthodes //////////////////////////////////////
@@ -101,36 +117,51 @@ public class Robot {
 		double mesureMoyenne = 0.0d;
 		double mesureMin = -1.0d;
 		double mesureMax = 0.0d;
+		Point2D.Double moyenneVecteursMesures = new Point2D.Double();
+		Point2D.Double vecteurMesure = new Point2D.Double();
 		
 		for (int i = 0 ; i < capteursProx.size() ; i++) {
-			mesureMoyenne += capteursProx.get(i).mesure();
+			double mesure = capteursProx.get(i).mesure();
 			
-			if (mesureMin < 0 || capteursProx.get(i).mesure() < mesureMin) {
-				mesureMin = capteursProx.get(i).mesure();
+			mesureMoyenne += mesure;
+			
+			if (mesureMin < 0 || mesure < mesureMin) {
+				mesureMin = mesure;
 			}
 			
-			if ( capteursProx.get(i).mesure() > mesureMax) {
-				mesureMax = capteursProx.get(i).mesure();
+			if (mesure > mesureMax) {
+				mesureMax = mesure;
 			}
+			
+			vecteurMesure.setLocation(mesure * Math.cos(capteursProx.get(i).getOffsetOrientation()), mesure * Math.sin(capteursProx.get(i).getOffsetOrientation()));
+			moyenneVecteursMesures.setLocation(moyenneVecteursMesures.getX() + vecteurMesure.getX(), moyenneVecteursMesures.getY() + vecteurMesure.getY());
 		}
 		
 		mesureMoyenne /= capteursProx.size();
-		System.out.println("mesureMoyenne : " + mesureMoyenne);
-		System.out.println("mesureMin : " + mesureMin);
-		System.out.println("mesureMax : " + mesureMax);
+		moyenneVecteursMesures.setLocation(moyenneVecteursMesures.getX() / capteursProx.size(), moyenneVecteursMesures.getY() / capteursProx.size());
 		
-		if (mesureMoyenne >= this.taille && mesureMin >= this.taille / 4) {
+		/*
+		if (mesureMin >= this.taille / 4) {
 			vitesseLin = mesureMoyenne;
 			vitesseRot = 0.0d;			
 		} else {
 			vitesseLin = 0.0d;
 			vitesseRot = 0.02d;
 		}
+		*/
+
+		double x = moyenneVecteursMesures.getX();
+		double y = moyenneVecteursMesures.getY();
+		
+		setVitLin(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
+		setVitRot(Math.atan2(y, x));
+		
+		System.out.println("vitesseLin : " + vitesseLin);
+		System.out.println("vitesseRot : " + vitesseRot);
 	}
 	
 	// Calcul du nouvel emplacement du robot
 	protected void PhysicsUpdate(double delta) {
-		
 		// On commence par appliquer la rotation
 		orientation += vitesseRot;
 		
