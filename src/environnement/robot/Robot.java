@@ -1,13 +1,14 @@
 package environnement.robot;
 
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
-import java.awt.geom.Point2D.Double;
 import java.util.ArrayList;
 
 import javax.swing.Timer;
+
+import carte.Carte;
+import carte.ZoneCarte.ElementCarte;
 
 public class Robot {
 
@@ -19,6 +20,7 @@ public class Robot {
 	double lastTick;
 	
 	ArrayList<CapteurProximite> capteursProx;
+	Carte carte;
 	
 	public Robot() {
 		taille = 30.0d;
@@ -33,6 +35,9 @@ public class Robot {
 		capteursProx.add(new CapteurProximite(this, 50.0d, -Math.PI/4));
 		capteursProx.add(new CapteurProximite(this, 50.0d, Math.PI/2));
 		capteursProx.add(new CapteurProximite(this, 50.0d, -Math.PI/2));
+		
+		// Création d'une carte vierge
+		carte = new Carte((int)taille);
 	}
 
 	//////////////////////////////////// Accesseurs /////////////////////////////////////
@@ -62,6 +67,10 @@ public class Robot {
 	
 	public double getTaille() {
 		return taille;
+	}
+	
+	public Carte getCarte() {
+		return carte;
 	}
 	
 	private void setVitLin(double vl) {
@@ -113,16 +122,15 @@ public class Robot {
 	// Prise de décision du robot (vitesse linéaire et de rotation)
 	// C'est la fonction principale de ce projet
 	protected void DecisionUpdate(double delta) {
-		// TODO
 		double mesureMoyenne = 0.0d;
 		double mesureMin = -1.0d;
 		double mesureMax = 0.0d;
 		Point2D.Double moyenneVecteursMesures = new Point2D.Double();
 		Point2D.Double vecteurMesure = new Point2D.Double();
 		
+		// Récupération des mesures des capteurs de proximité
 		for (int i = 0 ; i < capteursProx.size() ; i++) {
 			double mesure = capteursProx.get(i).mesure();
-			
 			mesureMoyenne += mesure;
 			
 			if (mesureMin < 0 || mesure < mesureMin) {
@@ -135,29 +143,22 @@ public class Robot {
 			
 			vecteurMesure.setLocation(mesure * Math.cos(capteursProx.get(i).getOffsetOrientation()), mesure * Math.sin(capteursProx.get(i).getOffsetOrientation()));
 			moyenneVecteursMesures.setLocation(moyenneVecteursMesures.getX() + vecteurMesure.getX(), moyenneVecteursMesures.getY() + vecteurMesure.getY());
+			
+			// mémorisation de la carte
+			if(mesure != capteursProx.get(i).getPortee()) {
+				Point2D.Double P = capteursProx.get(i).getPointIntersection();
+				carte.set((int) P.getX(), (int) P.getY(), ElementCarte.OBSTACLE);
+			}
 		}
 		
 		mesureMoyenne /= capteursProx.size();
 		moyenneVecteursMesures.setLocation(moyenneVecteursMesures.getX() / capteursProx.size(), moyenneVecteursMesures.getY() / capteursProx.size());
-		
-		/*
-		if (mesureMin >= this.taille / 4) {
-			vitesseLin = mesureMoyenne;
-			vitesseRot = 0.0d;			
-		} else {
-			vitesseLin = 0.0d;
-			vitesseRot = 0.02d;
-		}
-		*/
 
+		// Pour un comportement où on évite juste les murs il suffit de suivre la moyenne des directions possibles
 		double x = moyenneVecteursMesures.getX();
-		double y = moyenneVecteursMesures.getY();
-		
+		double y = moyenneVecteursMesures.getY();		
 		setVitLin(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
 		setVitRot(Math.atan2(y, x));
-		
-		System.out.println("vitesseLin : " + vitesseLin);
-		System.out.println("vitesseRot : " + vitesseRot);
 	}
 	
 	// Calcul du nouvel emplacement du robot

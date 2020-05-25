@@ -52,6 +52,10 @@ public class CapteurProximite {
 		return this.offsetOrientation;
 	}
 	
+	public double getPortee () {
+		return portee;
+	}
+	
 	////////////////////////////////////// Méthodes //////////////////////////////////
 	
 	public double mesure() {

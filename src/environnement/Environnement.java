@@ -1,5 +1,6 @@
 package environnement;
 
+import carte.Carte;
 import environnement.controle.CEnvironnement;
 import environnement.donnees.DEnvironnement;
 import environnement.panneau.PEnvironnement;
@@ -24,12 +25,12 @@ public class Environnement {
 		if(vueEnv == null) {
 			vueEnv = new PEnvironnement();
 		}
+		
+		vueEnv.addMouseListener(controlEnv);
 
 		if(robot == null) {
 			robot = new Robot();
 		}
-		
-		vueEnv.addMouseListener(controlEnv);
 	}
 	
 	/////////////////////////////// Accesseurs ///////////////////////////////////////

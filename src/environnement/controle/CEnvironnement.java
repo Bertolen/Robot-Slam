@@ -6,12 +6,9 @@ import java.awt.event.MouseListener;
 import environnement.Environnement;
 import environnement.donnees.DEnvironnement.Objet;
 import environnement.robot.Robot;
+import fenetre.FCarte;
 
 public class CEnvironnement implements MouseListener {
-	
-	public CEnvironnement() {
-		
-	}
 	
 	/////////////////////////////////// Méthodes /////////////////////////////////////////
 	
@@ -25,6 +22,10 @@ public class CEnvironnement implements MouseListener {
 	
 	public void gestionClickBoutonLancer() {
 		Environnement.getRobot().lancer();
+	}
+	
+	public void gestionClickBoutonCarte() {
+		new FCarte();
 	}
 	
 	/////////////////////// Implementation MouseListener /////////////////////////////////
