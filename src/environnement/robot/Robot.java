@@ -3,6 +3,7 @@ package environnement.robot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 import java.util.ArrayList;
 
 import javax.swing.Timer;
@@ -29,19 +30,23 @@ public class Robot {
 		
 		// Initialisation de la liste de capteurs de proximité
 		capteursProx = new ArrayList<CapteurProximite>();
-		// Temp : on ajoute un unique capteur au robot
+		// On ajoute des capteurs au robot
 		capteursProx.add(new CapteurProximite(this, 50.0d, 0.0d));
-		capteursProx.add(new CapteurProximite(this, 50.0d, Math.PI/4));
-		capteursProx.add(new CapteurProximite(this, 50.0d, -Math.PI/4));
-		capteursProx.add(new CapteurProximite(this, 50.0d, Math.PI/2));
-		capteursProx.add(new CapteurProximite(this, 50.0d, -Math.PI/2));
+		capteursProx.add(new CapteurProximite(this, 50.0d, Math.PI / 8));
+		capteursProx.add(new CapteurProximite(this, 50.0d, -Math.PI / 8));
+		capteursProx.add(new CapteurProximite(this, 50.0d, Math.PI / 4));
+		capteursProx.add(new CapteurProximite(this, 50.0d, -Math.PI / 4));
+		capteursProx.add(new CapteurProximite(this, 50.0d, Math.PI * 3 / 8));
+		capteursProx.add(new CapteurProximite(this, 50.0d, -Math.PI * 3 / 8));
+		capteursProx.add(new CapteurProximite(this, 50.0d, Math.PI / 2));
+		capteursProx.add(new CapteurProximite(this, 50.0d, -Math.PI / 2));
 		
 		// Création d'une carte vierge
 		carte = new Carte((int)taille);
 	}
 
 	//////////////////////////////////// Accesseurs /////////////////////////////////////
-
+	
 	public void setLocation(int x, int y) {
 		emplacement.setLocation(x, y);
 	}
@@ -81,8 +86,8 @@ public class Robot {
 	}
 	
 	private void setVitRot(double vr) {
-		if (vr < -Math.PI / 4) vr = -Math.PI / 4;
-		if (vr > Math.PI / 4) vr = Math.PI / 4;
+		if (vr < -Math.PI / 2) vr = -Math.PI / 2;
+		if (vr > Math.PI / 2) vr = Math.PI / 2;
 		
 		this.vitesseRot = vr;
 	}
@@ -125,8 +130,8 @@ public class Robot {
 		double mesureMoyenne = 0.0d;
 		double mesureMin = -1.0d;
 		double mesureMax = 0.0d;
-		Point2D.Double moyenneVecteursMesures = new Point2D.Double();
 		Point2D.Double vecteurMesure = new Point2D.Double();
+		Point2D.Double moyenneVecteursMesures = new Point2D.Double();
 		
 		// Récupération des mesures des capteurs de proximité
 		for (int i = 0 ; i < capteursProx.size() ; i++) {
@@ -141,7 +146,11 @@ public class Robot {
 				mesureMax = mesure;
 			}
 			
-			vecteurMesure.setLocation(mesure * Math.cos(capteursProx.get(i).getOffsetOrientation()), mesure * Math.sin(capteursProx.get(i).getOffsetOrientation()));
+			//Récupère la mesure sous forme de vecteur dans le référentiel local au robot
+			double orientationCapteur = capteursProx.get(i).getOffsetOrientation();
+			double cos = Math.cos(orientationCapteur);
+			double sin = Math.sin(orientationCapteur);
+			vecteurMesure.setLocation(mesure * cos, mesure * sin);
 			moyenneVecteursMesures.setLocation(moyenneVecteursMesures.getX() + vecteurMesure.getX(), moyenneVecteursMesures.getY() + vecteurMesure.getY());
 			
 			// mémorisation de la carte
@@ -156,15 +165,26 @@ public class Robot {
 
 		// Pour un comportement où on évite juste les murs il suffit de suivre la moyenne des directions possibles
 		double x = moyenneVecteursMesures.getX();
-		double y = moyenneVecteursMesures.getY();		
-		setVitLin(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
-		setVitRot(Math.atan2(y, x));
+		double y = moyenneVecteursMesures.getY();
+
+		// Pour un comportement où on cherche à longer les murs on ajoute un vecteur sur l'axe des y
+		//y -= 5.0d; // pour longer les murs à gauche
+		//y += 5.0d; // pour longer les murs à droite
+		
+		double norme = moyenneVecteursMesures.distance(0, 0);
+		double angle = Math.atan2(y, x);
+		
+		setVitLin(Math.cos(angle) * Math.min(norme, mesureMin));
+		setVitRot(angle);
+
+		//System.out.println("vitLin = " + this.vitesseLin);
+		//System.out.println("vitRot = " + this.vitesseRot);
 	}
 	
 	// Calcul du nouvel emplacement du robot
 	protected void PhysicsUpdate(double delta) {
 		// On commence par appliquer la rotation
-		orientation += vitesseRot;
+		orientation += vitesseRot * delta / 1000;
 		
 		// On finis en appliquant la translation
 		double newX = emplacement.getX() + Math.cos(orientation) * vitesseLin * delta / 1000;
