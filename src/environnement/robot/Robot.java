@@ -107,26 +107,26 @@ public class Robot {
 	}
 	
 	private void Tick() {
-		double delta = getDeltaTime();
+		double deltaTime = getDeltaTime();
 		
 		// Mise à jour de l'IA
-		DecisionUpdate(delta);
+		DecisionUpdate(deltaTime);
 		
 		// Mise à jour de l'emplacement
-		PhysicsUpdate(delta);
+		PhysicsUpdate(deltaTime);
 	}
 	
 	//Calcul du temps écoulé depuis le dernier tick, retour de cette valeur et mise à jour
 	private double getDeltaTime() {
 		double currentTick = System.currentTimeMillis();
-		double delta = currentTick - lastTick;
+		double deltaTime = currentTick - lastTick;
 		lastTick = currentTick;
-		return delta;
+		return deltaTime;
 	}
 	
 	// Prise de décision du robot (vitesse linéaire et de rotation)
 	// C'est la fonction principale de ce projet
-	protected void DecisionUpdate(double delta) {
+	protected void DecisionUpdate(double deltaTime) {
 		double mesureMoyenne = 0.0d;
 		double mesureMin = -1.0d;
 		double mesureMax = 0.0d;
@@ -154,8 +154,23 @@ public class Robot {
 			moyenneVecteursMesures.setLocation(moyenneVecteursMesures.getX() + vecteurMesure.getX(), moyenneVecteursMesures.getY() + vecteurMesure.getY());
 			
 			// mémorisation de la carte
+			
+			// mémorisation des espaces libres
+			Point2D.Double profondeurCapteur = capteursProx.get(i).getPointIntersection();
+			Point2D.Double emplacementCapteur = capteursProx.get(i).getPointSource();
+			double deltaX = profondeurCapteur.getX() - emplacementCapteur.getX();
+			double deltaY = profondeurCapteur.getY() - emplacementCapteur.getY();
+			double incr = 1 / Math.max(Math.abs(deltaX), Math.abs(deltaY));
+			
+			for (double j = 0 ; j <= 1 ; j = j + incr) {
+				double x = emplacementCapteur.getX() + j * deltaX;
+				double y = emplacementCapteur.getY() + j * deltaY;
+				carte.set((int) x, (int) y, ElementCarte.RIEN);
+			}
+			
+			// mémorisation de l'emplacement de l'obstacle
 			if(mesure != capteursProx.get(i).getPortee()) {
-				Point2D.Double P = capteursProx.get(i).getPointIntersection();
+				Point2D.Double P = profondeurCapteur;
 				carte.set((int) P.getX(), (int) P.getY(), ElementCarte.OBSTACLE);
 			}
 		}
@@ -182,13 +197,13 @@ public class Robot {
 	}
 	
 	// Calcul du nouvel emplacement du robot
-	protected void PhysicsUpdate(double delta) {
+	protected void PhysicsUpdate(double deltaTime) {
 		// On commence par appliquer la rotation
-		orientation += vitesseRot * delta / 1000;
+		orientation += vitesseRot * deltaTime / 1000;
 		
 		// On finis en appliquant la translation
-		double newX = emplacement.getX() + Math.cos(orientation) * vitesseLin * delta / 1000;
-		double newY = emplacement.getY() + Math.sin(orientation) * vitesseLin * delta / 1000;
+		double newX = emplacement.getX() + Math.cos(orientation) * vitesseLin * deltaTime / 1000;
+		double newY = emplacement.getY() + Math.sin(orientation) * vitesseLin * deltaTime / 1000;
 		emplacement.setLocation(newX, newY);
 	}
 }
